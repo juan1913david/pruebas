@@ -1,0 +1,150 @@
+y el codigo del test_mi_modulo.py
+
+  from datetime import datetime  
+from mi_modulo import es_par, calcular_edad, generar_id, ordenar_por_longitud, Carrito, Inventario, CalculadoraDescuentos, SistemaAutenticacion, GestionTareas, SistemaReservas  # Importa funciones y clases del módulo mi_modulo
+import pytest 
+
+
+#PRUEBA 1
+
+def test_es_par():
+    # Pruebas para la función es_par
+    assert es_par(4) == True   # Verifica que 4 es par
+    assert es_par(7) == False  # Verifica que 7 es impar
+    assert es_par(0) == True   # Verifica que 0 es considerado par
+    assert es_par(-2) == True  # Verifica que -2 es par
+
+# PRUEBA 2
+def test_calcular_edad():
+    # Pruebas para la función calcular_edad
+    assert calcular_edad("1995-05-15") == 29  # Verifica que la edad es correcta
+    assert calcular_edad("2023-12-31") == 0   # Verifica que la edad es 0 para una fecha futura
+    assert calcular_edad("1985-03-20") == datetime.now().year - 1985  # Verifica la edad actual
+    assert calcular_edad("1970-01-01") == 54  # Verifica que el resultado es correcto para la fecha dada
+    
+    # Verifica manejo de fecha futura
+    with pytest.raises(ValueError):  # Espera un error al intentar calcular la edad de una fecha futura
+        calcular_edad("2035-01-01")  # Verifica que lanza un error para una fecha futura
+
+# PRUEBA 3
+def test_generar_id():
+    # Pruebas para la función generar_id
+    id1 = generar_id()  # Genera un ID
+    id2 = generar_id()  # Genera otro ID
+    assert len(id1) == 8  # Verifica que el ID tiene 8 caracteres
+    assert id1.isalnum()  # Verifica que el ID es alfanumérico
+    assert id1 != id2  # Verifica que los dos IDs generados son diferentes
+
+# PRUEBA 4
+def test_ordenar_por_longitud():
+    # Pruebas para la función ordenar_por_longitud
+    assert ordenar_por_longitud(["perro", "gato", "elefante"]) == ["gato", "perro", "elefante"]  # Verifica el orden correcto
+    assert ordenar_por_longitud(["sol", "estrella", "luna"]) == ["sol", "luna", "estrella"]  # Verifica el orden correcto
+    assert ordenar_por_longitud([]) == []  # Verifica que una lista vacía devuelve una lista vacía
+    assert ordenar_por_longitud(["sol", "sol", "sol"]) == ["sol", "sol", "sol"]  # Verifica que lista de repetidos devuelve la misma lista
+
+# PRUEBA 5
+def test_carrito():
+    # Pruebas para la clase Carrito
+    carrito = Carrito()  # Crea una instancia de Carrito
+    carrito.agregar_producto("Producto1", 100)  # Agrega un producto al carrito
+    carrito.agregar_producto("Producto2", 50)  # Agrega otro producto al carrito
+    assert carrito.calcular_total(0) == 150  # Verifica que el total sin descuento es 150
+    assert carrito.calcular_total(10) == 135  # Verifica que el total con un descuento del 10% es 135
+    assert carrito.calcular_total(100) == 0  # Verifica que el total con un descuento del 100% es 0
+
+
+#PRUEBA 6
+def test_inventario():
+    # Pruebas para la clase Inventario
+    inventario = Inventario()  # Crea una instancia de Inventario
+    
+    inventario.agregar_producto(1, "Manzanas", 100)  # Agrega un producto al inventario
+    assert inventario.consultar_producto(1) == {"nombre": "Manzanas", "stock": 100}  # Verifica la consulta del producto
+    
+    with pytest.raises(ValueError):  # Espera un error al intentar agregar un producto existente
+        inventario.agregar_producto(1, "Peras", 50)  # Intenta agregar un producto con el mismo ID
+
+    inventario.eliminar_producto(1)  # Elimina el producto
+    with pytest.raises(ValueError):  # Espera un error al intentar consultar un producto eliminado
+        inventario.consultar_producto(1)  # Intenta consultar el producto eliminado 
+
+    with pytest.raises(ValueError):  # Espera un error al intentar actualizar el stock de un producto inexistente
+        inventario.actualizar_stock(2, 50)  # Intenta actualizar el stock de un ID inexistente
+
+# PRUEBA 7
+def test_calculadora_descuentos():
+    # Pruebas para la clase CalculadoraDescuentos
+    calculadora = CalculadoraDescuentos(100, 20)  # Crea una instancia con precio 100 y descuento 20
+    
+    assert calculadora.calcular_precio_final() == 80  # Verifica que el precio final sea correcto
+    
+    calculadora_invalida = CalculadoraDescuentos(0, 20)  # Crea una instancia con precio 0
+    with pytest.raises(ValueError):  # Espera un error al validar un precio 0
+        calculadora_invalida.validar_precio()  # Verifica que lanza un error para precio inválido
+
+    calculadora_descuento_invalido = CalculadoraDescuentos(100, 110)  # Crea una instancia con descuento 110
+    with pytest.raises(ValueError):  # Espera un error al validar un descuento mayor que 100
+        calculadora_descuento_invalido.validar_descuento()  # Verifica que lanza un error para descuento inválido
+
+
+#PRUEBA 8
+def test_sistema_autenticacion():
+    # Pruebas para la clase SistemaAutenticacion
+    sistema = SistemaAutenticacion()  # Crea una instancia de SistemaAutenticacion
+    
+    sistema.registrar_usuario("david", "password123")  # Registra un nuevo usuario
+    assert "david" in sistema.usuarios  # Verifica que el usuario ha sido registrado
+
+    with pytest.raises(ValueError):  # Espera un error al intentar registrar el mismo usuario
+        sistema.registrar_usuario("david", "otraPassword")  # Intenta registrar al mismo usuario nuevamente
+
+    sistema.iniciar_sesion("david", "password123")  # Inicia sesión con las credenciales correctas
+    assert sistema.usuarios["david"]["logged_in"] is True  # Verifica que el usuario está logueado
+
+    with pytest.raises(ValueError):  # Espera un error al intentar iniciar sesión con una contraseña incorrecta
+        sistema.iniciar_sesion("david", "incorrecta")  # Intenta iniciar sesión con una contraseña incorrecta
+ 
+    sistema.cerrar_sesion("david")  # Cierra la sesión del usuario
+    assert sistema.usuarios["david"]["logged_in"] is False  # Verifica que el usuario ya no está logueado
+
+    with pytest.raises(ValueError):  # Espera un error al intentar recuperar contraseña de un usuario inexistente
+        sistema.recuperar_contrasena("inexistente")  # Intenta recuperar contraseña de un usuario no registrado
+
+
+#PRUEBA 9
+def test_gestion_tareas():
+    # Pruebas para la clase GestionTareas
+    tareas = GestionTareas()  # Crea una instancia de GestionTareas
+    
+    tareas.crear_tarea("Estudiar", "2024-09-30")  # Crea una nueva tarea
+    assert len(tareas.tareas) == 1  # Verifica que se haya creado una tarea
+
+    tareas.marcar_completada("Estudiar")  # Marca la tarea como completada
+    assert tareas.tareas[0]["completada"] is True  # Verifica que la tarea esté marcada como completada
+
+    with pytest.raises(ValueError):  # Espera un error al intentar marcar como completada una tarea que no existe
+        tareas.marcar_completada("No existe")  # Intenta marcar como completada una tarea inexistente
+
+    tareas.eliminar_tarea("Estudiar")  # Elimina la tarea creada
+    assert len(tareas.tareas) == 0  # Verifica que no hay tareas
+
+    with pytest.raises(ValueError):  # Espera un error al intentar eliminar una tarea inexistente
+        tareas.eliminar_tarea("No existe")  # Intenta eliminar una tarea que no existe
+
+# PRUEBA 10
+def test_sistema_reservas():
+    # Pruebas para la clase SistemaReservas
+    reservas = SistemaReservas()  # Crea una instancia de SistemaReservas
+
+    reservas.crear_reserva("jorge", "2024-09-30", "19:00", 4)  # Crea una nueva reserva
+    assert len(reservas.reservas) == 1  # Verifica que se haya creado una reserva
+
+    with pytest.raises(ValueError):  # Espera un error al intentar crear una reserva en la misma fecha y hora
+        reservas.crear_reserva("maria", "2024-09-30", "19:00", 2)  # Intenta crear una reserva en conflicto
+
+    reservas.cancelar_reserva("jorge", "2024-09-30", "19:00")  # Cancela la reserva creada
+    assert len(reservas.reservas) == 0  # Verifica que no hay reservas
+
+    with pytest.raises(ValueError):  # Espera un error al intentar cancelar una reserva que no existe
+        reservas.cancelar_reserva("maria", "2024-09-30", "19:00")  # Intenta cancelar una reserva inexistente
